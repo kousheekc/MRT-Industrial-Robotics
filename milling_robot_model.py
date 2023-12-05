@@ -21,9 +21,9 @@ class Robot:
 
         self.fig = go.Figure(data=[origin])
         self.fig.update_layout(scene=dict(
-                    xaxis=dict(range=[-20, 20], title='X (m)'),
-                    yaxis=dict(range=[-20, 20], title='Y (m)'),
-                    zaxis=dict(range=[-20, 20], title='Z (m)'),
+                    xaxis=dict(range=[-30, 30], title='X (m)'),
+                    yaxis=dict(range=[-30, 30], title='Y (m)'),
+                    zaxis=dict(range=[-30, 30], title='Z (m)'),
                     aspectmode='cube'
                     )
                 )
@@ -72,6 +72,14 @@ class Robot:
 
         self.fig.add_trace(points)
 
+    
+    def enveloppe_with_links(self, joint1_limits, joint2_limits, joint4_limits):
+        poses = []
+        for i in np.arange(joint1_limits[0], joint1_limits[1], joint1_limits[2]):
+            for j in np.arange(joint2_limits[0], joint2_limits[1], joint2_limits[2]):
+                for k in np.arange(joint4_limits[0], joint4_limits[1], joint4_limits[2]):
+                    self.FKM_draw(i, j, k)
+
     def FKM(self, q1, q2, d4):
         x = -(self.a - (d4 + self.b) * math.sin(math.radians(q2))) * math.sin(math.radians(q1))
         y = (self.a - (d4 + self.b) * math.sin(math.radians(q2))) * math.cos(math.radians(q1))
@@ -106,7 +114,8 @@ class Robot:
             mode='markers',
             name="End Effector",
             marker=dict(
-                size=5,
+                color='black',
+                size=2,
                 opacity=0.8
             )
         )
@@ -117,7 +126,7 @@ class Robot:
             z=links[:2, 2],
             mode='lines',
             name="Link1",
-            line=dict(color='blue')
+            line=dict(color='blue' if (0<=d4<=10) else 'red')
         )
 
         link2 = go.Scatter3d(
@@ -126,7 +135,7 @@ class Robot:
             z=links[1:3, 2],
             mode='lines',
             name="Link2",
-            line=dict(color='red')
+            line=dict(color='orange' if (0<=d4<=10) else 'red')
         )
 
         link3 = go.Scatter3d(
@@ -135,7 +144,7 @@ class Robot:
             z=links[2:4, 2],
             mode='lines',
             name="Link3",
-            line=dict(color='green')
+            line=dict(color='green' if (0<=d4<=10) else 'red')
         )
 
         self.fig.add_trace(point)
@@ -206,7 +215,7 @@ class Robot:
 
         fig.show()
 
-    def interpolate(self, points, resolution=100):
+    def interpolate(self, points, resolution=5):
         interpolated_points = []
 
         for i in range(len(points)-1):
